@@ -90,17 +90,19 @@ public:
 
   class iterator {
   protected:
+    Deque<T>* parent;
     int it = 0;
-    const Deque<T>* parent;
     int shift = 0;
   public:
     friend class Deque<T>;
 
     iterator() = default;
 
+    iterator(Deque<T>* parent, int it, int shift):
+        parent(parent), it(it), shift(shift) {}
+
     iterator& operator--() {
       --it;
-     // cout << it;
       return *this;
     }
 
@@ -143,7 +145,7 @@ public:
       return copy;
     }
 
-    int operator-(iterator value) {//TODO
+    int operator-(iterator value) {
       iterator copy = *this;
       copy.it -= value.it;
       return copy.it;
@@ -184,54 +186,46 @@ public:
 
   class const_iterator: public Deque<T>::iterator {
   public:
+    const_iterator(Deque<T>* parent, int it, int shift):
+        iterator(parent, it, shift) {}
     const T& operator*() const {
       return iterator::parent->buffer[iterator::parent->l +
           iterator::it + iterator::parent->move - iterator::shift];
     }
 
     const T* operator->() const {
-      return &iterator::parent->buffer[iterator::parent->l + iterator::it +
-          iterator::parent->move - iterator::shift];
+      return &iterator::parent->buffer[iterator::parent->l +
+          iterator::it + iterator::parent->move - iterator::shift];
     }
   };
 
   iterator begin() {
-    iterator iterator;
-    iterator.parent = this;
-    iterator.it = 0;
-    iterator.shift = move;
+    iterator iterator(this, 0, move);
     return iterator;
   }
 
   iterator end() {
-    iterator iterator;
-    iterator.parent = this;
-    iterator.it = r - l;
-    iterator.shift = move;
+    iterator iterator(this, r - l, move);
     return iterator;
   }
 
   const_iterator cbegin() const {
-    const_iterator iterator;
-    iterator.parent = this;
-    iterator.it = 0;
-    iterator.shift = move;
+    const_iterator iterator =
+        const_iterator(const_cast<Deque<T>*>(this), 0, move);
     return iterator;
   }
 
   const_iterator cend() const {
-    const_iterator iterator;
-    iterator.parent = this;
-    iterator.it = r - l;
-    iterator.shift = move;
+    const_iterator iterator =
+        const_iterator(const_cast<Deque<T>*>(this), r - l, move);
     return iterator;
   }
 
-  iterator begin() const {
+  const_iterator begin() const {
     return cbegin();
   }
 
-  iterator end() const {
+  const_iterator end() const {
     return cend();
   }
 
@@ -247,13 +241,6 @@ public:
       std::swap(*i, *(i + 1));
     }
     pop_back();
-  }
-
-  void print() const {
-    for (int i = l; i < r; i++) {
-      cout << buffer[i] << ' ';
-    }
-    cout << endl;
   }
 };
 
