@@ -86,12 +86,13 @@ public:
   }
 
   friend class iterator;
+  friend class const_iterator;
 
   class iterator {
-  public:
-    T it = 0;
-    Deque<T>* parent;
-    int shift;
+  protected:
+    int it = 0;
+    const Deque<T>* parent;
+    int shift = 0;
   public:
     friend class Deque<T>;
 
@@ -145,7 +146,7 @@ public:
     int operator-(iterator value) {//TODO
       iterator copy = *this;
       copy.it -= value.it;
-      return copy;
+      return copy.it;
     }
 
     T& operator*() {
@@ -181,6 +182,19 @@ public:
     }
   };
 
+  class const_iterator: public Deque<T>::iterator {
+  public:
+    const T& operator*() const {
+      return iterator::parent->buffer[iterator::parent->l +
+          iterator::it + iterator::parent->move - iterator::shift];
+    }
+
+    const T* operator->() const {
+      return &iterator::parent->buffer[iterator::parent->l + iterator::it +
+          iterator::parent->move - iterator::shift];
+    }
+  };
+
   iterator begin() {
     iterator iterator;
     iterator.parent = this;
@@ -197,6 +211,30 @@ public:
     return iterator;
   }
 
+  const_iterator cbegin() const {
+    const_iterator iterator;
+    iterator.parent = this;
+    iterator.it = 0;
+    iterator.shift = move;
+    return iterator;
+  }
+
+  const_iterator cend() const {
+    const_iterator iterator;
+    iterator.parent = this;
+    iterator.it = r - l;
+    iterator.shift = move;
+    return iterator;
+  }
+
+  iterator begin() const {
+    return cbegin();
+  }
+
+  iterator end() const {
+    return cend();
+  }
+
   void insert(iterator it, T a) {
     push_back(a);
     for (auto i = --end(); i > it; --i) {
@@ -211,7 +249,7 @@ public:
     pop_back();
   }
 
-  void print() {
+  void print() const {
     for (int i = l; i < r; i++) {
       cout << buffer[i] << ' ';
     }
